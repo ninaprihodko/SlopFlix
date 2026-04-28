@@ -32,9 +32,12 @@ const makeRow = (
 ): SectionRow => ({
   id,
   label,
-  vids: Array.from({ length: 5 }, (_, index) => ({
+  vids: Array.from({ length: 25 }, (_, index) => ({
     id: `${id}-${index}`,
-    title: index < titles.length ? titles[index] : "placeholder",
+    title:
+      index < titles.length
+        ? titles[index]
+        : `${titles[index % titles.length]} (part ${Math.floor(index / titles.length) + 2})`,
     blurb: rowBlurbs[(index + id.length) % rowBlurbs.length],
     accent,
     sectionId: id,
