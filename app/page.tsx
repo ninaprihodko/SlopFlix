@@ -32,9 +32,9 @@ const makeRow = (
 ): SectionRow => ({
   id,
   label,
-  vids: Array.from({ length: 12 }, (_, index) => ({
+  vids: Array.from({ length: 5 }, (_, index) => ({
     id: `${id}-${index}`,
-    title: titles[index % titles.length],
+    title: index < titles.length ? titles[index] : "placeholder",
     blurb: rowBlurbs[(index + id.length) % rowBlurbs.length],
     accent,
     sectionId: id,
@@ -43,7 +43,7 @@ const makeRow = (
 });
 
 const sections: SectionRow[] = [
-  makeRow("top-vids", "top vids", "rgba(255, 111, 97, 0.68)", [
+  makeRow("top-vids", "r/scarystories", "rgba(255, 111, 97, 0.68)", [
     "insane reddit story that ruins your night",
     "this family group chat should have stayed private",
     "the wedding toast went criminally off script",
@@ -51,7 +51,7 @@ const sections: SectionRow[] = [
     "the plot twist in the final screenshot",
     "roommate story that keeps getting worse",
   ]),
-  makeRow("aitah", "aitah", "rgba(255, 140, 130, 0.56)", [
+  makeRow("aitah", "r/relationships", "rgba(255, 140, 130, 0.56)", [
     "AITAH for muting my entire family",
     "AITAH for leaving in the middle of dinner",
     "AITAH for exposing the fake apology",
@@ -59,7 +59,7 @@ const sections: SectionRow[] = [
     "AITAH for returning the gift immediately",
     "AITAH for screenshotting the proof",
   ]),
-  makeRow("scary-stories", "scary stories", "rgba(0, 229, 255, 0.46)", [
+  makeRow("scary-stories", "r/maliciouscompliance", "rgba(0, 229, 255, 0.46)", [
     "the voice note from the empty hallway",
     "my upstairs neighbor moved out last year",
     "there was breathing in the baby monitor",
@@ -69,7 +69,7 @@ const sections: SectionRow[] = [
   ]),
   makeRow(
     "relationship-drama",
-    "relationship drama",
+    "r/tifu",
     "rgba(255, 123, 112, 0.52)",
     [
       "he sent the same paragraph to two exes",
@@ -80,7 +80,7 @@ const sections: SectionRow[] = [
       "everyone picked sides in under ten minutes",
     ],
   ),
-  makeRow("celeb-drama", "celeb drama", "rgba(53, 221, 255, 0.42)", [
+  makeRow("celeb-drama", "r/nosleep", "rgba(53, 221, 255, 0.42)", [
     "pap walk decoded frame by frame",
     "the apology video had a second microphone",
     "fans spotted the leaked casting sheet",
@@ -88,36 +88,39 @@ const sections: SectionRow[] = [
     "nobody believes the breakup statement",
     "that interview answer started another war",
   ]),
-  makeRow(
-    "internet-rabbit-holes",
-    "internet rabbit holes",
-    "rgba(119, 238, 255, 0.34)",
-    [
-      "the fake restaurant with real reviews",
-      "this lost channel predicted its own ending",
-      "the avatar game mystery from 2012",
-      "niche forum post with terrifying replies",
-      "the missing influencer side account",
-      "map coordinates nobody can explain",
-    ],
-  ),
 ];
 
-const genres = sections.slice(1).map((section) => ({
+const genres = sections.slice(0).map((section) => ({
   id: section.id,
   label: section.label,
 }));
 
 function SlopflixMockup() {
   const [featuredVideo, setFeaturedVideo] = useState<VideoCard>(sections[0].vids[0]);
-  const [activeGenre, setActiveGenre] = useState<string>(sections[1].id);
+  const [activeGenre, setActiveGenre] = useState<string>(sections[0].id);
   const [queue, setQueue] = useState<string[]>([]);
+
+  const videoFiles: Record<string, string> = {
+    'top-vids': 'scarystories.mp4',
+    'aitah': 'relationships.mp4',
+    'scary-stories': 'maliciouscompliance.mp4',
+    'relationship-drama': 'tifu.mp4',
+    'celeb-drama': 'nosleep.mp4',
+  };
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const inQueue = queue.includes(featuredVideo.id);
+
+  const sectionLabels: Record<string, string> = {
+    'top-vids': 'Trending Now',
+    'aitah': 'Recommended For You',
+    'scary-stories': 'Top 10 in the US',
+    'relationship-drama': 'Binge-Worthy',
+    'celeb-drama': 'Popular on SlopFlix',
+  };
 
   const scrollRow = (sectionId: string, direction: -1 | 1) => {
     const row = rowRefs.current[sectionId];
@@ -134,9 +137,7 @@ function SlopflixMockup() {
     const targetSection = sections.find((section) => section.id === sectionId);
     if (!targetSection) return;
 
-    if (sectionId !== "top-vids") {
-      setActiveGenre(sectionId);
-    }
+    setActiveGenre(sectionId);
 
     setFeaturedVideo(targetSection.vids[0]);
 
@@ -148,10 +149,7 @@ function SlopflixMockup() {
 
   const handleVideoSelect = (video: VideoCard) => {
     setFeaturedVideo(video);
-
-    if (video.sectionId !== "top-vids") {
-      setActiveGenre(video.sectionId);
-    }
+    setActiveGenre(video.sectionId);
   };
 
   const toggleQueue = (videoId: string) => {
@@ -165,7 +163,7 @@ function SlopflixMockup() {
   return (
     <div
       ref={viewportRef}
-      className="hide-scrollbar relative h-screen overflow-x-hidden overflow-y-auto bg-[#040404] font-sans text-white"
+      className="hide-scrollbar relative h-screen overflow-x-hidden overflow-y-auto bg-[#0a0a0a] font-sans text-white"
     >
       <AuraBackground />
 
@@ -237,25 +235,36 @@ function SlopflixMockup() {
             onClick={() => focusSection(featuredVideo.sectionId)}
             className="block w-full text-left"
           >
-            <div
-              className="h-[320px] sm:h-[420px] lg:h-[520px]"
-              style={{
-                background: `linear-gradient(135deg, ${featuredVideo.accent} 0%, rgba(255,255,255,0.04) 40%, rgba(255,255,255,0.02) 100%)`,
-              }}
-            />
+            {featuredVideo.sectionId === 'top-vids' ? (
+              <video
+                className="w-full object-cover"
+                style={{ height: '320px' }}
+                src="/scarystories.mp4"
+                muted
+                loop
+                autoPlay
+              />
+            ) : (
+              <div
+                className="h-[320px] sm:h-[420px] lg:h-[520px]"
+                style={{
+                  background: `linear-gradient(135deg, ${featuredVideo.accent} 0%, rgba(255,255,255,0.04) 40%, rgba(255,255,255,0.02) 100%)`,
+                }}
+              />
+            )}
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
           </button>
 
           <div className="absolute bottom-6 left-6 right-6 z-20 sm:bottom-8 sm:left-8 sm:right-auto sm:max-w-2xl">
-            <div className="inline-flex rounded-full border border-white/15 bg-black/35 px-3 py-1 text-xs uppercase tracking-[0.24em] text-white/65">
+            <div className="inline-flex rounded-full border border-white/15 bg-black/35 px-3 py-1 text-xs uppercase tracking-[0.24em] text-white/65 pointer-events-none">
               {featuredVideo.sectionLabel}
             </div>
 
-            <div className="mt-4 text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
+            <div className="mt-4 text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl pointer-events-none">
               {featuredVideo.title}
             </div>
 
-            <div className="mt-2 max-w-xl text-white/60">{featuredVideo.blurb}</div>
+            <div className="mt-2 max-w-xl text-white/60 pointer-events-none">{featuredVideo.blurb}</div>
 
             <div className="mt-5 flex flex-wrap gap-3">
               <button
@@ -289,13 +298,13 @@ function SlopflixMockup() {
               <button
                 type="button"
                 onClick={() => focusSection(section.id)}
-                className="text-left text-lg font-bold capitalize text-white/90 transition hover:text-white"
+                className="text-left text-lg font-bold text-white/90 transition hover:text-white"
               >
                 {section.label}
               </button>
 
               <div className="hidden text-xs uppercase tracking-[0.2em] text-white/35 sm:block">
-                cards update the hero
+                {sectionLabels[section.id] || 'Recommended'}
               </div>
             </div>
 
@@ -323,32 +332,48 @@ function SlopflixMockup() {
                     <button
                       key={video.id}
                       type="button"
-                      onClick={() => handleVideoSelect(video)}
+                      onClick={() => {
+                        if (video.id.endsWith('-0')) {
+                          window.open(`/${videoFiles[video.sectionId]}`, '_blank');
+                        } else {
+                          handleVideoSelect(video);
+                        }
+                      }}
                       className={`group relative h-32 min-w-[220px] flex-shrink-0 overflow-hidden rounded-xl border text-left transition ${
                         selected
                           ? "border-white/35 shadow-[0_0_0_1px_rgba(255,255,255,0.15)]"
                           : "border-white/10 hover:-translate-y-0.5 hover:border-white/25"
                       }`}
                     >
-                      <div
-                        className="absolute inset-0"
-                        style={{
-                          background: `linear-gradient(135deg, ${video.accent} 0%, rgba(255,255,255,0.02) 100%)`,
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent" />
+                      {video.id.endsWith('-0') ? (
+                        <video
+                          className="absolute inset-0 object-cover pointer-events-none"
+                          src={`/${videoFiles[video.sectionId]}`}
+                          muted
+                          loop
+                          autoPlay
+                        />
+                      ) : (
+                        <div
+                          className="absolute inset-0 pointer-events-none"
+                          style={{
+                            background: `linear-gradient(135deg, ${video.accent} 0%, rgba(255,255,255,0.02) 100%)`,
+                          }}
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent pointer-events-none" />
 
-                      <div className="absolute left-2 top-2 rounded-full border border-white/10 bg-black/35 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-white/60">
+                      <div className="absolute left-2 top-2 rounded-full border border-white/10 bg-black/35 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-white/60 pointer-events-none">
                         {section.label}
                       </div>
 
                       {queued ? (
-                        <div className="absolute right-2 top-2 rounded-full border border-[#00e5ff]/30 bg-[#00e5ff]/10 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-[#9ef5ff]">
+                        <div className="absolute right-2 top-2 rounded-full border border-[#00e5ff]/30 bg-[#00e5ff]/10 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-[#9ef5ff] pointer-events-none">
                           queued
                         </div>
                       ) : null}
 
-                      <div className="absolute bottom-3 left-3 right-3">
+                      <div className="absolute bottom-3 left-3 right-3 pointer-events-none">
                         <div className="text-sm font-semibold text-white">{video.title}</div>
                         <div className="mt-1 text-xs text-white/55">{video.blurb}</div>
                       </div>
@@ -409,27 +434,27 @@ function ScrollArrow({
 function AuraBackground() {
   const blobs = [
     {
-      className: "left-[-12%] top-[-8%] h-[42rem] w-[42rem] bg-[#ff6f61]/46",
+      className: "left-[-12%] top-[-8%] h-[42rem] w-[42rem] bg-[#ff6f61]/70",
       animation: "blobFloat1 26s ease-in-out infinite",
     },
     {
-      className: "left-[4%] top-[52%] h-[36rem] w-[36rem] bg-[#ff7b70]/34",
+      className: "left-[4%] top-[52%] h-[36rem] w-[36rem] bg-[#ff7b70]/65",
       animation: "blobFloat2 24s ease-in-out infinite",
     },
     {
-      className: "left-[26%] top-[18%] h-[28rem] w-[28rem] bg-[#ff8c82]/28",
+      className: "left-[26%] top-[18%] h-[28rem] w-[28rem] bg-[#ff8c82]/60",
       animation: "blobFloat3 20s ease-in-out infinite",
     },
     {
-      className: "right-[-10%] top-[0%] h-[42rem] w-[42rem] bg-[#00e5ff]/42",
+      className: "right-[-10%] top-[0%] h-[42rem] w-[42rem] bg-[#00e5ff]/70",
       animation: "blobFloat4 28s ease-in-out infinite",
     },
     {
-      className: "right-[2%] top-[48%] h-[38rem] w-[38rem] bg-[#35ddff]/34",
+      className: "right-[2%] top-[48%] h-[38rem] w-[38rem] bg-[#35ddff]/65",
       animation: "blobFloat5 22s ease-in-out infinite",
     },
     {
-      className: "right-[24%] top-[20%] h-[30rem] w-[30rem] bg-[#77eeff]/24",
+      className: "right-[24%] top-[20%] h-[30rem] w-[30rem] bg-[#77eeff]/55",
       animation: "blobFloat6 18s ease-in-out infinite",
     },
   ];
@@ -454,7 +479,7 @@ function AuraBackground() {
   ];
 
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div className="pointer-events-none fixed inset-0 overflow-hidden">
       {blobs.map((blob, index) => (
         <div
           key={index}
